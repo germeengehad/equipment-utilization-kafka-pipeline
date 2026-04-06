@@ -215,8 +215,13 @@ docker-compose down -v
 
 ---
 
+## 🎥 Demo
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/germeengehad/equipment-utilization-kafka-pipeline/main/Screenshot%20(298).png" width="900"/>
+</p>
+
 ## 📊 Dashboard
-### 🖥️ Live Dashboard Preview
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/germeengehad/equipment-utilization-kafka-pipeline/main/Screenshot%20(298).png" 
