@@ -1,0 +1,114 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  vision_service:
+    build:
+      context: .
+      dockerfile: vision_service/Dockerfile
+    container_name: vision_service
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+      INPUT_VIDEO: /app/data/raw/your_video.mp4
+      OUTPUT_DIR: /app/outputs
+      YOLO_MODEL_PATH: /app/yolov8n.pt
+      SHOW_WINDOW: "false"
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./static:/app/static
+      - ./yolov8n.pt:/app/yolov8n.pt
+    command: python vision_service/main.py
+
+  kafka_producer:
+    build:
+      context: .
+      dockerfile: kafka/Dockerfile
+    container_name: kafka_producer
+    depends_on:
+      - kafka
+      - vision_service
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+      INPUT_FILE: /app/outputs/logs/tracking_payloads.jsonl
+    volumes:
+      - ./outputs:/app/outputs
+    command: sh -c "sleep 10 && python kafka/kafka_producer.py"
+
+  kafka_consumer_db:
+    build:
+      context: .
+      dockerfile: kafka/Dockerfile
+    container_name: kafka_consumer_db
+    depends_on:
+      - kafka
+      - postgres
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: ${KAFKA_TOPIC}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./outputs:/app/outputs
+    command: sh -c "sleep 10 && python kafka/kafka_to_postgres.py"
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashbord/Dockerfile
+    container_name: dashboard
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      VIDEO_PATH: /app/outputs/videos/state_activity_output_h264.mp4
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./outputs:/app/outputs
+    command: streamlit run dashbord/dashbord_app.py --server.address=0.0.0.0 --server.port=8501
+
+volumes:
+  postgres_data:

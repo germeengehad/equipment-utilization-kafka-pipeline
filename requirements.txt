@@ -1,0 +1,9 @@
+ultralytics
+opencv-python-headless
+numpy
+pandas
+streamlit
+psycopg2-binary
+kafka-python
+python-dotenv
+
