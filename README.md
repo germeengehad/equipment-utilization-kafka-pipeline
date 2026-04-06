@@ -223,16 +223,6 @@ docker-compose down -v
 
 ## 📊 Dashboard
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/germeengehad/equipment-utilization-kafka-pipeline/main/Screenshot%20(298).png" 
-       alt="Equipment Utilization Dashboard"
-       width="900"/>
-</p>
-
-<p align="center">
-  <em>Real-time Streamlit dashboard showing equipment utilization, activity tracking, and annotated video output.</em>
-</p>
-
 The Streamlit dashboard (`dashbord/dashbord_app.py`) connects to PostgreSQL and displays:
 
 - **Equipment utilization metrics** — active vs. idle time per object/equipment class
