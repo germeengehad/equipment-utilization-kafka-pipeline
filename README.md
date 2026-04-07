@@ -10,6 +10,7 @@
 </p>
 
 > A real-time computer vision pipeline that uses **YOLOv8** object detection to monitor equipment activity from video footage, streams events through **Apache Kafka**, persists tracking data to **PostgreSQL**, and visualizes utilization metrics on a live **Streamlit** dashboard — all orchestrated with **Docker Compose**.
+> ✅ Includes full technical write-up explaining articulated motion handling and activity classification logic.
 
 ---
 
@@ -39,6 +40,73 @@ This project implements an **end-to-end real-time data engineering pipeline** fo
 4. A **Streamlit Dashboard** connects to PostgreSQL and displays live utilization metrics and annotated video output.
 
 This covers the full lifecycle: **ingestion → streaming → storage → visualization**.
+
+---
+
+🧠 Computer Vision Logic & Design Decisions
+🔹 Handling Articulated Equipment Motion (KEY REQUIREMENT)
+
+A major challenge is detecting activity when only part of a machine moves.
+
+Solution:
+
+Compute optical flow inside bounding box
+Split ROI into:
+full machine
+arm region (top-right)
+truck base region
+
+For excavators:
+
+effective_motion = max(full_motion, arm_motion * 3.5)
+
+✔ This ensures:
+
+arm-only movement → still ACTIVE
+stationary base → does not break detection
+
+👉 This directly satisfies the articulated motion requirement.
+
+🔹 Activity Classification Strategy
+
+Rule-based classification based on motion:
+
+Excavator:
+DUMPING → high arm motion + low full motion
+DIGGING → arm motion above threshold
+LOADING → high full motion
+SWINGING → fallback
+Dump Truck:
+LOADING → high base motion
+WAITING → otherwise
+Global rule:
+INACTIVE → always WAITING
+🔹 State Classification
+ACTIVE → motion above threshold
+INACTIVE → motion below threshold for several frames
+
+Different thresholds per machine type:
+
+Excavator → sensitive (small motion matters)
+Truck → stricter
+🔹 Utilization Calculation
+Utilization % = Active Time / Total Time × 100
+
+Tracked per machine in real-time:
+
+active time
+idle time
+idle session
+🔹 Stable Machine Identity (Re-ID)
+
+Tracking IDs may change → solved using:
+
+IoU matching
+center distance
+area ratio
+spatial zones
+
+👉 ensures consistent machine IDs for analytics
 
 ---
 
@@ -73,6 +141,10 @@ This covers the full lifecycle: **ingestion → streaming → storage → visual
 │                               └────────────────────┘               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+## 🔄 Pipeline Flow
+Video → YOLO Detection → Tracking → Motion Analysis
+→ State & Activity → JSONL → Kafka → PostgreSQL → Dashboard
 
 ---
 
@@ -217,11 +289,12 @@ docker-compose down -v
 
 ## 🎥 Demo
 
+
+
+## 📊 Dashboard
 <p align="center">
   <img src="https://raw.githubusercontent.com/germeengehad/equipment-utilization-kafka-pipeline/main/dashboard.png" width="900"/>
 </p>
-
-## 📊 Dashboard
 
 The Streamlit dashboard (`dashbord/dashbord_app.py`) connects to PostgreSQL and displays:
 
