@@ -204,7 +204,7 @@ cp /path/to/your/video.mp4 data/raw/your_video.mp4
 
 ```env
 # Kafka
-KAFKA_TOPIC=equipment_tracking
+KAFKA_TOPIC=equipment_tracking_clean_v2
 
 # PostgreSQL
 POSTGRES_DB=equipment_db
@@ -234,7 +234,7 @@ Docker Compose starts services in dependency order:
 6. `kafka_consumer_db` — Consumes from Kafka and persists to PostgreSQL
 7. `dashboard` — Serves the Streamlit app on port `8501`
 
-> The `vision_service` processes the full video before the producer begins streaming, so all JSONL data is available for replay if the Kafka consumer restarts.
+> The `vision_service` processes the video and writes results to JSONL, which are then streamed to Kafka to simulate real-time processing.
 
 ### View the Dashboard
 
@@ -263,6 +263,21 @@ The dashboard auto-refreshes as new data flows in from the Kafka consumer.
 
 ---
 
+## 🎥 Demo Video
+
+👉 [Watch Demo Video](ADD_YOUR_VIDEO_LINK_HERE)
+
+This demo demonstrates:
+
+- Real-time video processing with bounding boxes
+- Machine state updates (ACTIVE / INACTIVE)
+- Activity classification (Digging, Dumping, Loading)
+- Kafka streaming pipeline
+- Live dashboard updating utilization metrics
+
+---
+
+The system processes video frame-by-frame and updates analytics in near real-time.
 ## 🧠 Technical Write-Up
 
 This section details the key design decisions and trade-offs in the computer vision and data pipeline layers.
