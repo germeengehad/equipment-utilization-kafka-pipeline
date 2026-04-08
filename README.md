@@ -116,7 +116,7 @@ The full lifecycle is covered: **Ingestion → Streaming → Storage → Visuali
   - Inserts / upserts records into PostgreSQL
      │
      ▼  (PostgreSQL)
-[dashbord/dashbord_app.py]
+[dashboard/dashboard_app.py]
   - Queries PostgreSQL for utilization data
   - Renders metrics, charts, and annotated video
   - Served via Streamlit on port 8501
@@ -138,9 +138,9 @@ equipment-utilization-kafka-pipeline/
 │   ├── kafka_producer.py       # Reads JSONL, publishes to Kafka topic
 │   └── kafka_to_postgres.py    # Consumes Kafka topic, writes to PostgreSQL
 │
-├── dashbord/                   # Streamlit dashboard
+├── dashboard/                   # Streamlit dashboard
 │   ├── Dockerfile
-│   └── dashbord_app.py         # Reads from PostgreSQL, renders metrics + video
+│   └── dashboard_app.py         # Reads from PostgreSQL, renders metrics + video
 │
 ├── data/
 │   └── raw/                    # 📥 Place your input video here: your_video.mp4
