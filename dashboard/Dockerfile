@@ -15,7 +15,7 @@
 
 # ENV PYTHONUNBUFFERED=1
 
-# CMD ["python", "vision_service/main.py"]
+# CMD ["streamlit", "run", "dashbord/dashbord_app.py", "--server.address=0.0.0.0", "--server.port=8501"]
 
 FROM python:3.10-slim
 
@@ -35,4 +35,4 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "vision_service/main.py"]
+CMD ["streamlit", "run", "dashbord/dashbord_app.py", "--server.address=0.0.0.0", "--server.port=8501"]
