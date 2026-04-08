@@ -406,7 +406,7 @@ Each payload also carries `current_idle_session_seconds`, which resets to zero w
 
 | Variable | Service(s) | Default | Description |
 |---|---|---|---|
-| `INPUT_VIDEO` | vision_service | `/app/data/raw/your_video.mp4` | Path to input video inside container |
+| `INPUT_VIDEO` | vision_service | `/app/data/raw/test_clip.mp4` | Path to input video inside container |
 | `YOLO_MODEL_PATH` | vision_service | `/app/yolov8n.pt` | YOLOv8 weights file |
 | `SHOW_WINDOW` | vision_service | `false` | Show OpenCV window (requires display) |
 | `KAFKA_TOPIC` | all | `equipment_tracking` | Kafka topic name |
