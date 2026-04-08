@@ -24,6 +24,7 @@
 - [Running the Pipeline](#-running-the-pipeline)
 - [Dashboard](#-dashboard)
 - [Technical Write-Up](#-technical-write-up)
+- [Trade-offs & Design Decisions](#-trade-offs--design-decisions)
 - [Configuration Reference](#-configuration-reference)
 - [Troubleshooting](#-troubleshooting)
 - [Python Dependencies](#-python-dependencies)
@@ -278,6 +279,7 @@ This demo demonstrates:
 ---
 
 The system processes video frame-by-frame and updates analytics in near real-time.
+
 ## 🧠 Technical Write-Up
 
 This section details the key design decisions and trade-offs in the computer vision and data pipeline layers.
@@ -399,6 +401,56 @@ Each payload also carries `current_idle_session_seconds`, which resets to zero w
 | Database | PostgreSQL 15 | InfluxDB, SQLite | Relational schema suits mixed metadata + time-series workloads |
 | Dashboard | Streamlit | Grafana, Dash | Minimal boilerplate; Python-native; easy to co-locate with DB queries |
 | Orchestration | Docker Compose | Kubernetes, bare metal | Single-node demo; Compose is sufficient and far simpler to operate |
+
+---
+
+## ⚖️ Trade-offs & Design Decisions
+
+This system was designed to balance real-time performance, simplicity, and scalability within the constraints of a prototype environment.
+
+- **YOLOv8 for real-time detection**
+  YOLOv8 (nano) was selected for its fast inference speed and ease of integration.
+  *Trade-off:* While faster and suitable for real-time processing, it may be slightly less accurate than heavier models such as Faster R-CNN.
+
+- **Optical Flow for motion analysis**
+  Dense Optical Flow (Farneback) was used to detect motion instead of deep learning-based motion models.
+  *Trade-off:* This approach is lightweight and does not require training, but may be less robust in highly dynamic or noisy environments.
+
+- **Region-based motion for articulated equipment**
+  The system splits each machine into regions (e.g., arm vs. base) to correctly detect partial motion such as excavator arm movement.
+  *Trade-off:* Region selection is heuristic and tuned to the demo camera angle, which may require adjustment for different viewpoints.
+
+- **High motion sensitivity tuning**
+  The system was intentionally tuned to be sensitive to small movements in order to capture subtle articulated motion.
+  *Trade-off:* Improves detection of real activity but may increase sensitivity to noise in more complex scenes.
+
+- **Controlled video selection (short, fixed camera)**
+  A short video with a fixed camera was used to reduce noise and clearly demonstrate both active and idle states.
+  *Trade-off:* Improves clarity and stability but may not fully generalize to real-world multi-camera environments.
+
+- **Frame-based incremental time calculation**
+  Active and idle times are accumulated per frame using FPS-based timing.
+  *Trade-off:* Ensures smooth real-time updates but introduces minor approximation compared to exact timestamp tracking.
+
+- **Decoupled JSON → Kafka → Database pipeline**
+  The vision service writes results to a JSONL file, which is then streamed through Kafka and stored in PostgreSQL. This design:
+  - Prevents blocking the vision pipeline due to network or database latency
+  - Enables replayability and debugging via persisted logs
+  - Decouples processing from data transmission
+
+  *Trade-off:* Introduces a small delay due to file I/O, but significantly improves reliability, scalability, and fault tolerance.
+
+- **Kafka for streaming architecture**
+  Kafka was used as the central message broker to enable a scalable and decoupled system.
+  *Trade-off:* Adds system complexity compared to direct API communication but allows easy extension with additional consumers.
+
+- **Streamlit for rapid dashboard development**
+  Streamlit was chosen to quickly build a functional visualization layer.
+  *Trade-off:* Suitable for prototyping, but not as flexible or scalable as full frontend frameworks for production use.
+
+- **Simplified tracking approach with Re-ID heuristics**
+  A lightweight Re-ID mechanism was implemented to maintain consistent machine identities across frames.
+  *Trade-off:* Works well in controlled scenarios, but may require more advanced tracking (e.g., DeepSORT) in complex environments.
 
 ---
 
