@@ -1,9 +1,9 @@
-ultralytics
-opencv-python-headless
-numpy
-pandas
-streamlit
-psycopg2-binary
-kafka-python
-python-dotenv
+ultralytics>=8.0.0
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+pandas>=2.0.0
+streamlit>=1.30.0
+psycopg2-binary>=2.9.0
+kafka-python>=2.0.0
+python-dotenv>=1.0.0
 
