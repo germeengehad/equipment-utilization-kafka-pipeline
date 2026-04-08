@@ -265,7 +265,7 @@ The dashboard auto-refreshes as new data flows in from the Kafka consumer.
 
 ## 🎥 Demo Video
 
-👉 [Watch Demo Video](ADD_YOUR_VIDEO_LINK_HERE)
+👉 [Watch Demo Video](https://drive.google.com/file/d/1vtVit6ekPlSLE0pXmNBXy94l2MIVi6Eb/view?usp=sharing)
 
 This demo demonstrates:
 
